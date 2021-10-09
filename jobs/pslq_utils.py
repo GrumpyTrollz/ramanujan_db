@@ -2,6 +2,10 @@ import mpmath as mp
 
 
 def verify_result(first_value, second_value, result):
+    if result[0] == result[2] == 0:
+        print("False positive")
+        return None
+
     right_side = second_value
     left_side = (first_value * result[0] + result[1])
     right_side = right_side * (first_value * result[2] + result[3])
