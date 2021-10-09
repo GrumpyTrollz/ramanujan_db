@@ -1,11 +1,13 @@
 import math
 import logging
 import logging.config
+from mpmath.functions.functions import root
 import numpy as np
 import mpmath
 from decimal import Decimal, getcontext
 from collections import namedtuple
 from dataclasses import dataclass, asdict
+from jobs import math_utils
 from enum import Enum
 import time
 import os
@@ -139,7 +141,7 @@ def check_fr(fr_list):
 
     return 0.5
 
-def check_rational(p, q):
+def check_rational(p, q, num):
     val = mpmath.mpf(p) / mpmath.mpf(q)
     if mpmath.almosteq(p, 0) or mpmath.almosteq(val, 0):
         logging.getLogger(LOGGER_NAME).debug(f'Checking rational that is too close to 0 p={p},q={q}')
@@ -147,6 +149,13 @@ def check_rational(p, q):
     
     if mpmath.pslq([val, 1], tol=mpmath.power(10, -100)):
         return 1
+    
+    integer_roots = math_utils.integer_roots(num)
+    for i in integer_roots:
+        if i > 0:
+            logging.getLogger(LOGGER_NAME).debug(f'numenator has positive integer root, num={num}, root={i}')
+            return 1
+            
     return 0
 
 def calculate_cf(num, denom, depth_diff, previous_calc=None, verbose=False, skip=1, reduce_jump=False):
@@ -189,7 +198,7 @@ def calculate_cf(num, denom, depth_diff, previous_calc=None, verbose=False, skip
         data.rounded = True
         value = 0
 
-    data.rational = check_rational(p, q)
+    data.rational = check_rational(p, q, num)
     data.reduction = cf_calc.reduction
 
     return value, precision, cf_calc.get_calc_data(), asdict(data), i
