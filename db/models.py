@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import ARRAY,Column, DateTime, Float, ForeignKey, Integer, Numeric, String, UniqueConstraint, text
+from sqlalchemy import ARRAY, Column, DateTime, Float, ForeignKey, Integer, Numeric, String, UniqueConstraint, text, Table
 from sqlalchemy.sql.sqltypes import BigInteger
 from sqlalchemy.types import Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -19,6 +19,7 @@ class Constant(Base):
     value = Column(Numeric, nullable=False)
     precision = Column(Integer, nullable=False)
     trust = Column(Float, nullable=False, server_default=text("1"))
+    artificial = Column(Integer, nullable=False, server_default=text("0"))
     _lambda = Column('lambda', Float, server_default=text("0"))
     delta = Column(Float, server_default=text("0"))
     insertion_date = Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
@@ -75,6 +76,37 @@ class CfConstantConnection(Base):
 
     cf = relationship('Cf')
     constant = relationship('Constant')
+
+
+constant_in_relation_table = Table(
+    "constant_in_relation",
+    Base.metadata,
+    Column('constant_id', ForeignKey('constant.constant_id'), primary_key=True),
+    Column('relation_id', ForeignKey('relation.relation_id'), primary_key=True),
+)
+
+
+cf_in_relation_table = Table(
+    "cf_in_relation",
+    Base.metadata,
+    Column('cf_id', ForeignKey('cf.cf_id'), primary_key=True),
+    Column('relation_id', ForeignKey('relation.relation_id'), primary_key=True),
+)
+
+
+class Relation(Base):
+    __tablename__ = 'relation'
+
+    relation_id = Column(UUID, primary_key=True, server_default=text("uuid_generate_v1()"))
+    relation_type = Column(String, nullable=False)
+    # if this needs an order on the constants and cfs (and it probably will), it is
+    # determined by ascending order on the constant_ids, and then ascending order on the cf_ids
+    # generally going to be of the form: (polydegree, innerdegree, argcount, (nullvector))
+    details = Column(ARRAY(Integer()), nullable=False)
+    insertion_date = Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
+
+    cfs = relationship('Cf', secondary=cf_in_relation_table)
+    constants = relationship('Constant', secondary=constant_in_relation_table)
 
 
 class ContinuedFractionRelation(Base):

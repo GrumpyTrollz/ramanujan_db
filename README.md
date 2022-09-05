@@ -1,4 +1,4 @@
-# Ramanuajn Database
+# Ramanujan Database
 This project is an extension of the [ramanujan project](https://github.com/ShaharGottlieb/MasseyRamanujan).
 The project mainly focuses on inserting all of the results that the algorithm find into a database for easier analysis and a centralized source of data.
 
@@ -8,7 +8,7 @@ The project mainly focuses on inserting all of the results that the algorithm fi
 Make sure that your host has python-3.8.10 or above and pip.
 
 ### Step 1 - installing required packages
-To install the required packages run pip install -r requirements.txt from the root dir of the project.
+To install the required packages, first run 'sudo apt-get install libpq-dev' (or equivalent, for instance replace 'apt-get' with 'yum -y' if on amazon linux). Then run 'pip install -r requirements.txt' from the root dir of the project. Note that if you're using a specific version of python, the version postfix of the python command should also be appended to the pip command (for instance if you're explicitly calling python3.8 then also explicitly call pip3.8).
 
 ### Step 2 - Configuration
 Open the config.py in the root dir and configure db_configuration:

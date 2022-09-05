@@ -1,5 +1,5 @@
 import mpmath as mp
-
+import numpy as np
 
 def verify_result(first_value, second_value, result):
     right_side = second_value
@@ -23,3 +23,24 @@ def check_int_null_vector(first_value, second_value):
 
     return None
 
+def verify_result2(constants, cf, res):
+    if mp.almosteq(constants.dot(res[:len(constants)]), cf * constants.dot(res[len(constants):])):
+        return res
+    else:
+        print("False positive")
+        return None
+
+def check_int_null_vector2(constants, cf):
+    # instead of just one first_value, now constants is a list of "first_value"s to PSLQ against
+    # cf, which was the second value. gonna use numpy vector magic to make things nice and compact
+    constants = np.concatenate((constants, [1]))
+    res = mp.pslq(np.concatenate((constants, -cf * constants)).tolist())
+    return verify_result2(constants, cf, res) if res else None
+
+def find_null_polynomial(poly):
+    res = mp.pslq(poly)
+    if res:
+        if mp.almosteq(np.dot(poly, res), 0):
+            return res
+        print("False positive")
+    return None

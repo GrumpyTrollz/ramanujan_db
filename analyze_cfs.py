@@ -61,7 +61,7 @@ def parse_polys_from_file(filename, symbol_char='l'):
 
     print(f'got {success} out of {polys}')
 
-def analyze_polys(filename):
+def analyze_polys(filename, num_of_constants):
     db_handle = RamanujanDB()
     for num, denom in parse_polys_from_file(filename):
         cf_id = gen_cfs.add_one(num, denom, db_handle)
@@ -73,7 +73,7 @@ def analyze_polys(filename):
             print(f'cf is rational value: {precision_data.value} cf id: {cf_id}')
             continue
 
-        connections = pslq_job.run_one(cf_id,db_handle, write_to_db=True)
+        connections = pslq_job.run_one(cf_id,db_handle, write_to_db=True, num_of_consts=num_of_constants)
         print(f'num: {num}, denom:{denom} has cf_id:{cf_id}')
         print(f'Precision data: {precision_data.value}')
         print(f'Found connections: {connections}')
@@ -82,7 +82,7 @@ def analyze_polys(filename):
 
 def main():
     os.makedirs(os.path.join(os.getcwd(), 'logs'), exist_ok=True)
-    analyze_polys(sys.argv[1])
+    analyze_polys(sys.argv[1], int(sys.argv[2]))
 
 if __name__ == '__main__':
     main()

@@ -15,11 +15,11 @@ class RamanujanDB(object):
 
     @property
     def constants(self):
-        return self.session.query(models.Constant)
+        return self.session.query(models.Constant).order_by(models.Constant.constant_id)
 
     @property
     def cfs(self):
-        return self.session.query(models.Cf)
+        return self.session.query(models.Cf).order_by(models.Cf.cf_id)
 
     def add_cfs(self, cf_list, conflict=False):
         if not conflict:

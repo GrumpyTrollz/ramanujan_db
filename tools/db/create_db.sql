@@ -1,11 +1,11 @@
 -- Creating DB
-CREATE DATABASE ramanujan
+CREATE DATABASE ramanujanv2
     WITH
     OWNER = postgres
 ;
 
 -- Use DB
-\c ramanujan
+\c ramanujanv2
 
 -- Add module for uuid
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -18,6 +18,7 @@ CREATE TABLE constant (
 	value NUMERIC NOT NULL,
 	precision INT NOT NULL,
 	trust REAL NOT NULL DEFAULT 1,
+	artificial INT NOT NULL DEFAULT 0,
 	lambda REAL DEFAULT 0,
 	delta REAL DEFAULT 0,
 	insertion_date timestamp DEFAULT current_timestamp
@@ -56,6 +57,25 @@ CREATE TABLE cf_constant_connection (
 	connection_details INT[] NOT NULL,
 	insertion_date timestamp DEFAULT current_timestamp,
 	PRIMARY KEY (constant_id, cf_id)
+);
+
+CREATE TABLE relation (
+	relation_id UUID NOT NULL DEFAULT uuid_generate_v1() PRIMARY KEY,
+	relation_type VARCHAR NOT NULL,
+	details INT[] NOT NULL,
+	insertion_date timestamp DEFAULT current_timestamp
+);
+
+CREATE TABLE constant_in_relation (
+	constant_id INT NOT NULL REFERENCES constant (constant_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	relation_id UUID NOT NULL REFERENCES relation (relation_id) ON UPDATE CASCADE,
+	CONSTRAINT const_relation_pkey PRIMARY KEY (constant_id, relation_id)
+);
+
+CREATE TABLE cf_in_relation (
+	cf_id UUID NOT NULL REFERENCES cf (cf_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	relation_id UUID NOT NULL REFERENCES relation (relation_id) ON UPDATE CASCADE,
+	CONSTRAINT cf_relation_pkey PRIMARY KEY (cf_id, relation_id)
 );
 
 CREATE TABLE cf_precision (

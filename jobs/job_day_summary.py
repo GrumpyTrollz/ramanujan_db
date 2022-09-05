@@ -14,11 +14,11 @@ db_handle = ramanujan_db.RamanujanDB()
 def getLastResults(model):
     today = date.today()
     yesterday = today - timedelta(days=1)
-    return db_handle.session.query(model).filter(model.insertion_date > yesterday)
+    return db_handle.session.query(model).filter(model.insertion_date > yesterday).all()
 
 def write_const_results(sheet, results):
-    sheet.write('A1','const symbol')
-    sheet.write('B1','const description')
+    sheet.write('A1','const symbols')
+    sheet.write('B1','const descriptions')
     sheet.write('C1','cf numerator')
     sheet.write('D1','cf denominator')
     sheet.write('E1','connection type')
@@ -26,17 +26,17 @@ def write_const_results(sheet, results):
 
     i=1
     for result in results:
-        constant = db_handle.session.query(models.Constant).filter(models.Constant.constant_id == result.constant_id).one()
+        constants = db_handle.session.query(models.Constant).filter(models.Constant.constant_id.in_(result.constant_ids)).all()
         cf = db_handle.session.query(models.Cf).filter(models.Cf.cf_id == result.cf_id).one()
-        assert(constant)
+        assert(any(constants))
         assert(cf)
-        sheet.write(i,0, constant.name)
-        sheet.write(i,1, constant.description)
-        sheet.write(i,2, cf.partial_numerator)
-        sheet.write(i,3, cf.partial_denominator)
+        sheet.write(i,0, str([constant.name for constant in constants]))
+        sheet.write(i,1, str([constant.description for constant in constants]))
+        sheet.write(i,2, str([int(x) for x in cf.partial_numerator]))
+        sheet.write(i,3, str([int(x) for x in cf.partial_denominator]))
         sheet.write(i,4, result.connection_type)
-        sheet.write(i,5, result.connection_details)
-        i+=1    
+        sheet.write(i,5, str(result.connection_details))
+        i+=1
    
 
 def write_cf_results(sheet, results):
@@ -74,12 +74,12 @@ def send_summary(summary,xsl_file_name):
         )
 
 def run_job(): 
-    constants_results = getLastResults(models.CfConstantConnection)
+    constants_results = getLastResults(models.CfMultiConstantConnection)
     cf_results = getLastResults(models.ContinuedFractionRelation)
 
     today_str = date.today().strftime("%d/%m/%Y")
 
-    today_summary_excel = "summary "+ date.today().strftime("%d_%m_%Y")+ ".xslx"
+    today_summary_excel = "summary "+ date.today().strftime("%d_%m_%Y")+ ".xlsx"
 
     workbook = xl.Workbook(today_summary_excel)
     if len(constants_results) > 0:
@@ -96,7 +96,8 @@ def run_job():
 
     workbook.close()
 
-    send_summary(summary,today_summary_excel)
+    #send_summary(summary,today_summary_excel)
+    # TODO the email doesn't work!!!
 
     #TODO: maybe put all excels results in a designated folder
 
